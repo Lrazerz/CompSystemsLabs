@@ -4,58 +4,49 @@ _basePath="/home/grid/testbed/tb159/newLab3/autoVectProg/"
 
 cd $_basePath
 
-flagsForOptimization=(O0 O1 O2 O3 Os Ofast)
+flags=(O0 O1 O2 O3 Os Ofast)
 
 i=0
-
-for flag in ${flagsForCmplrOptmztion[@]}
-
+for flag in ${flags[@]}
 do
-
-        echo "g++ compilation using flag $flag:"
-
+        echo "g++ using flag $flag:"
         srcfile="result$i"
-
         g++ -$flag program.cpp -o $srcfile -lm
-
-        time ./$srcfile
-
+	j=0
+        time (
+	while [ $j -lt 100 ]
+	do
+		./$srcfile
+		j=$((j+1))
+	done
         let "i=i+1"
-
         echo -e "\n"
-
 done
 
 ml icc                                                                           
 
 flagsForCpu=$(cat /proc/cpuinfo | grep flags | cut -d: -f2 | uniq)
-
-flagsForOptimization=(O2 Ofast)
+flagsForOptimization=(O1 Ofast)
 
 i=0
-
-for optmzFlag in ${flagsForOptimization[@]}
-
+for optimizedFlag in ${flagsForOptimization[@]}
 do
-
         for iccFlag in $flagsForCpu
-
         do
-
                 srcfile="iccResult$iccFlag$optmzFlag"
-
-                icc -$optmzFlag -qopt-report-phase=vec program.cpp -o $srcfile -lm -x$iccFlag 2> errors.txt
-
+                icc -$optimizedFlag -qopt-report-phase=vec program.cpp -o $srcfile -lm -x$iccFlag 2> errors.txt
                 if [ $? -eq 0 ]
-
                 then
-
-                        echo "icc compilation with -$optmzFlag flag and $iccFlag cpu extension:"
-
-                        time ./$srcfile
-
+                        echo "icc compilation with -$optimizedFlag flag and $iccFlag cpu extension:"
+			j=0
+                        time (
+			while [ $j -lt 100]
+			do
+				./$srcfile
+				j=$((j+1))
+			done
+			)
                         echo -e "\n"
-
                 fi
 
         done
